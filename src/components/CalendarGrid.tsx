@@ -8,9 +8,13 @@ type Props = {
   year: number
   range: Range
   onSelectDate: (day: number) => void
+  minDay?: number
+  maxDay?: number
+  blackoutDays?: number[]
+
 }
 
-export function CalendarGrid({ month, year, range, onSelectDate }: Props) {
+export function CalendarGrid({ month, year, range, onSelectDate, minDay, maxDay, blackoutDays }: Props) {
   const daysInMonth = new Date(year, month + 1, 0).getDate()
   const startDay = new Date(year, month, 1).getDay()
 
@@ -38,13 +42,26 @@ export function CalendarGrid({ month, year, range, onSelectDate }: Props) {
             day > range.start &&
             day < range.end
 
+          const MAX_RANGE_DAYS = 7  
+          const wouldExceed =
+            range.start !== null &&
+            range.end === null &&
+            Math.abs(day - range.start) + 1 > MAX_RANGE_DAYS
+          
+          const isBlackout = blackoutDays?.includes(day)
+          const isDisabled =isBlackout || (minDay !== undefined && day < minDay) || (maxDay !== undefined && day > maxDay)
+
           return (
             <button
               key={day}
-              onClick={() => onSelectDate(day)}
+              disabled={isDisabled}
+              onClick={() => !isDisabled && onSelectDate(day)}
               className={`p-2 rounded text-center
-                ${isStart || isEnd ? "bg-blue-600 text-white" :
-                inRange ? "bg-blue-200" :
+                   ${isDisabled ? "bg-gray-200 text-gray-400 cursor-not-allowed" :
+                   isBlackout ? "bg-black text-white cursor-not-allowed" :
+                   wouldExceed ? "bg-red-100 text-red-400 cursor-not-allowed" :
+                   isStart || isEnd ? "bg-blue-600 text-white" :
+                   inRange ? "bg-blue-200"  :
                 "bg-blue-100"}`}
             >
               {day}

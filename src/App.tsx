@@ -2,6 +2,13 @@ import { useState } from "react"
 import { CalendarGrid } from "./components/CalendarGrid"
 import { TimeInput } from "./components/TimeInput"
 import { combineDateAndTime } from "./Utils/dateUtils"
+import { Presets } from "./components/Presets"
+
+const MIN_DAY = 5
+const MAX_DAY = 25
+const BLACKOUT_DAYS = [10, 14, 21]
+const MAX_RANGE_DAYS = 7
+
 
 type DateTimeRange = {
   startDate: number | null
@@ -24,17 +31,40 @@ function App() {
   endTime: "00:00",
 })
 
+ const [error, setError] = useState<string | null>(null)
+
+
 
   function handleSelect(day: number) {
+  setError(null)
+
+  if (BLACKOUT_DAYS.includes(day)) {
+    setError("This date is unavailable.")
+    return
+  }
+
+  if (day < MIN_DAY || day > MAX_DAY) {
+    alert("Selected date is outside allowed range")
+    return
+  }
+
   if (range.startDate === null || range.endDate !== null) {
     setRange({ ...range, startDate: day, endDate: null })
   } else {
-    if (day < range.startDate)
-      setRange({ ...range, startDate: day, endDate: range.startDate })
-    else
-      setRange({ ...range, endDate: day })
-  }
+    const start = range.startDate
+    const end = day < start ? start : day
+    const newStart = day < start ? day : start
+
+    const duration = Math.abs(end - newStart) + 1
+
+    if (duration > MAX_RANGE_DAYS) {
+      alert(`Range cannot exceed ${MAX_RANGE_DAYS} days`)
+      return
+    }
+
+    setRange({ ...range, startDate: newStart, endDate: end })
 }
+  }
 
 const startDateTime =
   range.startDate !== null
@@ -65,15 +95,28 @@ const endDateTime =
         value={range.endTime}
         onChange={(val) => setRange({ ...range, endTime: val })}
       />
+
+      <Presets
+         onSelectRange={(start, end) =>
+         setRange({ ...range, startDate: start, endDate: end })
+  }
+/>
     </div>
 
     {/* CALENDAR BELOW */}
     <CalendarGrid
-      month={currentMonth}
-      year={currentYear}
-      range={{ start: range.startDate, end: range.endDate }}
-      onSelectDate={handleSelect}
+            month={currentMonth}
+            year={currentYear}
+            range={{ start: range.startDate, end: range.endDate }}
+            onSelectDate={handleSelect}
+            minDay={MIN_DAY}
+            maxDay={MAX_DAY}
+
     />
+     {error && (
+  <div className="mt-2 text-sm text-red-600 font-medium">{error}</div>
+)}
+
 
      <div className="mt-4 text-xs text-gray-600">
           <div><strong>Start:</strong> {startDateTime?.toString() || "—"}</div>

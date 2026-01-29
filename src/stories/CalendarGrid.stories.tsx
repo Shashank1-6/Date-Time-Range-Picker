@@ -32,3 +32,35 @@ export const WithRange: Story = {
     range: { start: 5, end: 12 },
   },
 }
+
+export const WithConstraints: Story = {
+  args: {
+    month: 0,
+    year: 2026,
+    range: { start: null, end: null },
+    minDay: 5,
+    maxDay: 25,
+  },
+}
+
+export const DurationLimit: Story = {
+  args: {
+    month: 0,
+    year: 2026,
+    range: { start: 5, end: null },
+    minDay: 1,
+    maxDay: 31,
+  },
+}
+
+export const BlackoutDates: Story = {
+  args: {
+    month: 0,
+    year: 2026,
+    range: { start: null, end: null },
+    minDay: 1,
+    maxDay: 31,
+    blackoutDays: [10, 14, 21],
+  },
+}
+
